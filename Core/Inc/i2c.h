@@ -32,13 +32,18 @@ extern "C" {
 /* USER CODE END Includes */
 
 /* USER CODE BEGIN Private defines */
-
+#define LL_I2C_REG_8BIT                0x00000000U
+#define LL_I2C_REG_16BIT               0x00000001U          
+/* For 16bit register address */
+#define REG_ADDR_MSB(addr)             ((uint8_t)(addr>>8))
+#define REG_ADDR_LSB(addr)             ((uint8_t)(addr&0xFF))
 /* USER CODE END Private defines */
 
 void MX_I2C1_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-
+uint16_t	API_I2CxMasterSend(I2C_TypeDef *I2Cx,uint32_t SlaveAddr, uint32_t SlaveAddrSize,uint16_t RegAddr, uint16_t RegAddrSize, uint16_t DataLen, const uint8_t *pData);
+uint16_t	API_I2CxMasterRecv(I2C_TypeDef *I2Cx,uint32_t SlaveAddr, uint32_t SlaveAddrSize,uint16_t RegAddr, uint16_t RegAddrSize, uint16_t DataLen, __IO uint8_t *pData);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

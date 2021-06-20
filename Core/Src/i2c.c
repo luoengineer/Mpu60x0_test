@@ -74,7 +74,145 @@ void MX_I2C1_Init(void)
 }
 
 /* USER CODE BEGIN 1 */
+//I2C发送定长数据,最大只能发送256字节
+/**
+  * @brief  Handles I2Cx communication when starting transfer or during transfer (TC or TCR flag are set).
+  * @rmtoll CR2          SADD          LL_I2C_HandleTransfer\n
+  *         CR2          ADD10         LL_I2C_HandleTransfer\n
+  *         CR2          RD_WRN        LL_I2C_HandleTransfer\n
+  *         CR2          START         LL_I2C_HandleTransfer\n
+  *         CR2          STOP          LL_I2C_HandleTransfer\n
+  *         CR2          RELOAD        LL_I2C_HandleTransfer\n
+  *         CR2          NBYTES        LL_I2C_HandleTransfer\n
+  *         CR2          AUTOEND       LL_I2C_HandleTransfer\n
+  *         CR2          HEAD10R       LL_I2C_HandleTransfer
+  * @param  I2Cx I2C Instance.
+  * @param  SlaveAddr Specifies the slave address to be programmed.
+  * @param  SlaveAddrSize This parameter can be one of the following values:
+  *         @arg @ref LL_I2C_ADDRSLAVE_7BIT
+  *         @arg @ref LL_I2C_ADDRSLAVE_10BIT
+  * @retval Data length
+  */
+uint16_t	API_I2CxMasterSend(I2C_TypeDef *I2Cx, uint32_t SlaveAddr, uint32_t SlaveAddrSize,uint16_t RegAddr, uint16_t RegAddrSize, uint16_t DataLen,const uint8_t *pData)
+{
+    volatile    uint16_t    I2C_timeout = 2000;
+	uint16_t	iLoop=0;
+	
+    //I2C1->CR2 = I2C_CR2_AUTOEND | (DataLen<<16) | (SLAVE_ADDRESS<<1);
+    I2Cx->CR2 = I2C_CR2_AUTOEND | ((DataLen+1)<<16) | (SlaveAddr) | (SlaveAddrSize);
+	I2Cx->CR2 &= ~(I2C_CR2_RD_WRN);
+	I2Cx->CR2 |= I2C_CR2_START;
+    // RBYTE OFFSET ADDRESS
+    I2C_timeout = 2000;
+    while( ((I2Cx->ISR & I2C_ISR_TXE) !=  I2C_ISR_TXE) && (--I2C_timeout) );
+    if( I2C_timeout == 0 ){
+        I2C_timeout = 20;
+        I2Cx->CR1 &= ~(I2C_CR1_PE);
+        while( --I2C_timeout );
+        I2Cx->CR1 |= I2C_CR1_PE;
+        return 0;
+    }
+	if (RegAddrSize == LL_I2C_REG_8BIT)
+	{
+		I2Cx->TXDR  = (RegAddr & 0xFF);
+	}
+	else
+	{
+		I2Cx->TXDR = REG_ADDR_MSB(RegAddr);
+    
+		I2C_timeout = 2000;
+		while( ((I2Cx->ISR & I2C_ISR_TXE) !=  I2C_ISR_TXE) && (--I2C_timeout) );
+		if( I2C_timeout == 0 ){
+			I2C_timeout = 20;
+			I2Cx->CR1 &= ~(I2C_CR1_PE);
+			while( --I2C_timeout );
+			I2Cx->CR1 |= I2C_CR1_PE;
+			return 0;
+		}
+		I2Cx->TXDR = REG_ADDR_LSB(RegAddr);
+    }
+    
+    // DATA WORD n
+	for( iLoop=0; iLoop<DataLen; iLoop++ )
+    {
+        I2C_timeout = 2000;
+        while( ((I2Cx->ISR & I2C_ISR_TXE) !=  I2C_ISR_TXE) && (--I2C_timeout) );
+        if( I2C_timeout == 0 ){
+			I2C_timeout = 20;
+			I2Cx->CR1 &= ~(I2C_CR1_PE);
+			while( --I2C_timeout );
+			I2Cx->CR1 |= I2C_CR1_PE;
+			return 0;
+        }
+		I2Cx->TXDR = pData[iLoop];
+	}
+    
+    return DataLen;
+}
 
+//I2C接收定长数据,I2C发送定长数据,最大只能接收256字节
+uint16_t API_I2CxMasterRecv(I2C_TypeDef *I2Cx,uint32_t SlaveAddr, uint32_t SlaveAddrSize,uint16_t RegAddr, uint16_t DataLen , __IO uint8_t *pData)
+{
+    volatile    uint16_t    I2C_timeout = 2000;
+	uint16_t	iLoop=0;
+    
+    I2Cx->CR2 =  I2C_CR2_AUTOEND | (1<<16) | (SlaveAddr) | (SlaveAddrSize);// I2C_CR2_RELOAD
+	I2Cx->CR2 &= ~(I2C_CR2_RD_WRN);
+//    I2C3->CR2 &= ~(I2C_CR2_RELOAD);
+	I2Cx->CR2 |= I2C_CR2_START;
+    // RBYTE OFFSET ADDRESS
+    I2C_timeout = 2000;
+    while( ((I2Cx->ISR & I2C_ISR_TXE) !=  I2C_ISR_TXE) && (--I2C_timeout) );
+    if( I2C_timeout == 0 ){
+        I2C_timeout = 20;
+        I2Cx->CR1 &= ~(I2C_CR1_PE);
+        while( --I2C_timeout );
+        I2Cx->CR1 |= I2C_CR1_PE;
+        return 0;
+    }
+    I2Cx->TXDR = REG_ADDR_MSB(RegAddr); 
+    
+    I2C_timeout = 2000;
+    while( ((I2Cx->ISR & I2C_ISR_TXE) !=  I2C_ISR_TXE) && (--I2C_timeout) );
+    if( I2C_timeout == 0 ){
+        I2C_timeout = 20;
+        I2Cx->CR1 &= ~(I2C_CR1_PE);
+        while( --I2C_timeout );
+        I2Cx->CR1 |= I2C_CR1_PE;
+        return 0;
+    }
+    I2Cx->TXDR = REG_ADDR_LSB(RegAddr); 
+
+    I2C_timeout = 3000;//2112
+    while( ((I2Cx->ISR & I2C_ISR_BUSY) ==  I2C_ISR_BUSY) && (--I2C_timeout) );
+    if( I2C_timeout == 0 ){
+        I2C_timeout = 20;
+        I2Cx->CR1 &= ~(I2C_CR1_PE);
+        while( --I2C_timeout );
+        I2Cx->CR1 |= I2C_CR1_PE;
+        return 0;
+    }    
+    
+    //I2C1->CR2 = I2C_CR2_AUTOEND | (DataLen<<16) | (SLAVE_ADDRESS<<1);
+	I2Cx->CR2 =  I2C_CR2_AUTOEND | I2C_CR2_RD_WRN | (DataLen<<16) | (SlaveAddr) | (SlaveAddrSize);
+	I2Cx->CR2 |= I2C_CR2_START;
+	
+	for( iLoop=0; iLoop<DataLen; iLoop++ )
+    {
+        I2C_timeout = 2000;
+        while( ((I2Cx->ISR & I2C_ISR_RXNE) != I2C_ISR_RXNE) && (--I2C_timeout) );
+        if( I2C_timeout == 0 ){
+			I2C_timeout = 20;
+			I2Cx->CR1 &= ~(I2C_CR1_PE);
+			while( --I2C_timeout );
+			I2Cx->CR1 |= I2C_CR1_PE;
+			return 0;
+        }
+		pData[iLoop] = I2Cx->RXDR;
+	}
+    
+    return DataLen;
+}
 /* USER CODE END 1 */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
