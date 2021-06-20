@@ -1,0 +1,20 @@
+--cpu=Cortex-M4.fp.sp
+"mpu60x0_test\startup_stm32g431xx.o"
+"mpu60x0_test\main.o"
+"mpu60x0_test\gpio.o"
+"mpu60x0_test\i2c.o"
+"mpu60x0_test\usart.o"
+"mpu60x0_test\stm32g4xx_it.o"
+"mpu60x0_test\stm32g4xx_ll_utils.o"
+"mpu60x0_test\stm32g4xx_ll_exti.o"
+"mpu60x0_test\stm32g4xx_ll_gpio.o"
+"mpu60x0_test\stm32g4xx_ll_i2c.o"
+"mpu60x0_test\stm32g4xx_ll_dma.o"
+"mpu60x0_test\stm32g4xx_ll_pwr.o"
+"mpu60x0_test\stm32g4xx_ll_usart.o"
+"mpu60x0_test\stm32g4xx_ll_rcc.o"
+"mpu60x0_test\system_stm32g4xx.o"
+--library_type=microlib --strict --scatter "Mpu60x0_test\Mpu60x0_test.sct"
+--summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list "Mpu60x0_test.map" -o Mpu60x0_test\Mpu60x0_test.axf
