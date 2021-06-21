@@ -28,17 +28,19 @@ extern "C" {
 #include "main.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "stdio.h"     
+#include "stdarg.h"			
+#include "string.h" 
 /* USER CODE END Includes */
 
 /* USER CODE BEGIN Private defines */
-
+#define USART1_TXBUFF_SIZE   256   		//定义串口1发送缓冲区大小为256字节
 /* USER CODE END Private defines */
 
 void MX_USART1_UART_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-
+void u1_printf(char*, ...) ;         	//串口1 printf函数
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

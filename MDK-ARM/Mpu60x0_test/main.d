@@ -24,4 +24,7 @@ mpu60x0_test\main.o: ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_ll_usart.h
 mpu60x0_test\main.o: ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_ll_gpio.h
 mpu60x0_test\main.o: ../Core/Inc/i2c.h
 mpu60x0_test\main.o: ../Core/Inc/usart.h
+mpu60x0_test\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+mpu60x0_test\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
+mpu60x0_test\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
 mpu60x0_test\main.o: ../Core/Inc/gpio.h

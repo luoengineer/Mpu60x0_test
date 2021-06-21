@@ -35,26 +35,26 @@ void MX_USART1_UART_Init(void)
   /* Peripheral clock enable */
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_USART1);
 
-  LL_AHB2_GRP1_EnableClock(LL_AHB2_GRP1_PERIPH_GPIOC);
+  LL_AHB2_GRP1_EnableClock(LL_AHB2_GRP1_PERIPH_GPIOA);
   /**USART1 GPIO Configuration
-  PC4   ------> USART1_TX
-  PC5   ------> USART1_RX
+  PA9   ------> USART1_TX
+  PA10   ------> USART1_RX
   */
-  GPIO_InitStruct.Pin = LL_GPIO_PIN_4;
+  GPIO_InitStruct.Pin = LL_GPIO_PIN_9;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
   GPIO_InitStruct.Alternate = LL_GPIO_AF_7;
-  LL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  GPIO_InitStruct.Pin = LL_GPIO_PIN_5;
+  GPIO_InitStruct.Pin = LL_GPIO_PIN_10;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
   GPIO_InitStruct.Alternate = LL_GPIO_AF_7;
-  LL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   USART_InitStruct.PrescalerValue = LL_USART_PRESCALER_DIV1;
   USART_InitStruct.BaudRate = 115200;
@@ -84,7 +84,30 @@ void MX_USART1_UART_Init(void)
 }
 
 /* USER CODE BEGIN 1 */
+/*-------------------------------------------------*/
+/*函数名：串口1 printf函数                         */
+/*参  数：char* fmt,...  格式化输出字符串和参数     */
+/*返回值：无                                       */
+/*-------------------------------------------------*/
+__align(8) char Usart1_TxBuff[USART1_TXBUFF_SIZE];  
 
+void u1_printf(char * fmt, ...) 
+{  
+	unsigned int i, length;
+	
+	va_list ap;
+	va_start(ap, fmt);
+	vsprintf(Usart1_TxBuff, fmt, ap);
+	va_end(ap);	
+	
+	length = strlen((const char*)Usart1_TxBuff);		
+	while((USART1->ISR&0X40) == 0);
+	for(i = 0; i < length; i++)
+	{			
+		USART1->TDR = Usart1_TxBuff[i];
+		while((USART1->ISR&0X40) == 0);	
+	}	
+}
 /* USER CODE END 1 */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
