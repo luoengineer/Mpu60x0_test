@@ -151,7 +151,7 @@ uint16_t	API_I2CxMasterSend(I2C_TypeDef *I2Cx, uint32_t SlaveAddr, uint32_t Slav
 }
 
 //I2C接收定长数据,I2C发送定长数据,最大只能接收256字节
-uint16_t API_I2CxMasterRecv(I2C_TypeDef *I2Cx,uint32_t SlaveAddr, uint32_t SlaveAddrSize,uint16_t RegAddr, uint16_t DataLen , __IO uint8_t *pData)
+uint16_t	API_I2CxMasterRecv(I2C_TypeDef *I2Cx,uint32_t SlaveAddr, uint32_t SlaveAddrSize,uint16_t RegAddr, uint16_t RegAddrSize, uint16_t DataLen, __IO uint8_t *pData)
 {
     volatile    uint16_t    I2C_timeout = 2000;
 	uint16_t	iLoop=0;
@@ -170,18 +170,23 @@ uint16_t API_I2CxMasterRecv(I2C_TypeDef *I2Cx,uint32_t SlaveAddr, uint32_t Slave
         I2Cx->CR1 |= I2C_CR1_PE;
         return 0;
     }
-    I2Cx->TXDR = REG_ADDR_MSB(RegAddr); 
-    
-    I2C_timeout = 2000;
-    while( ((I2Cx->ISR & I2C_ISR_TXE) !=  I2C_ISR_TXE) && (--I2C_timeout) );
-    if( I2C_timeout == 0 ){
-        I2C_timeout = 20;
-        I2Cx->CR1 &= ~(I2C_CR1_PE);
-        while( --I2C_timeout );
-        I2Cx->CR1 |= I2C_CR1_PE;
-        return 0;
+    if (RegAddrSize == LL_I2C_REG_8BIT)
+	{
+        I2Cx->TXDR = REG_ADDR_MSB(RegAddr); 
     }
-    I2Cx->TXDR = REG_ADDR_LSB(RegAddr); 
+    else
+    {
+        I2C_timeout = 2000;
+        while( ((I2Cx->ISR & I2C_ISR_TXE) !=  I2C_ISR_TXE) && (--I2C_timeout) );
+        if( I2C_timeout == 0 ){
+            I2C_timeout = 20;
+            I2Cx->CR1 &= ~(I2C_CR1_PE);
+            while( --I2C_timeout );
+            I2Cx->CR1 |= I2C_CR1_PE;
+            return 0;
+        }
+        I2Cx->TXDR = REG_ADDR_LSB(RegAddr); 
+    }
 
     I2C_timeout = 3000;//2112
     while( ((I2Cx->ISR & I2C_ISR_BUSY) ==  I2C_ISR_BUSY) && (--I2C_timeout) );
