@@ -5,6 +5,7 @@
 "mpu60x0_test\i2c.o"
 "mpu60x0_test\usart.o"
 "mpu60x0_test\stm32g4xx_it.o"
+"mpu60x0_test\mpu6050.o"
 "mpu60x0_test\stm32g4xx_ll_utils.o"
 "mpu60x0_test\stm32g4xx_ll_exti.o"
 "mpu60x0_test\stm32g4xx_ll_gpio.o"
